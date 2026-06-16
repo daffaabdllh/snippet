@@ -94,34 +94,41 @@
             </div>
 
             <!-- Code/Note Content Box (Mac-style terminal preview) -->
-            <div class="border border-slate-800 rounded-2xl overflow-hidden shadow-lg bg-slate-950 flex flex-col">
+            <div class="border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm my-4 bg-slate-50/50 flex flex-col">
                 <!-- Mac-style window control header -->
-                <div class="bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-slate-800/80 shrink-0">
+                <div class="bg-slate-100/80 px-4 py-2.5 flex items-center justify-between border-b border-slate-200/60 shrink-0">
                     <div class="flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500/90 inline-block"></span>
-                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400/90 inline-block"></span>
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/90 inline-block"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400/80 inline-block"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
                     </div>
-                    <span class="text-[10px] font-mono text-slate-500 tracking-wider select-none uppercase">Snippet View</span>
+                    <span class="text-[10px] font-mono text-slate-400 tracking-wider select-none uppercase">Note Content</span>
                     <!-- Clipboard/Copy content shortcut inside the editor box -->
                     <button 
-                        x-data="{ copied: false }"
-                        x-on:click="navigator.clipboard.writeText(@js($note->content)); copied = true; setTimeout(() => copied = false, 2000); $dispatch('toast', { message: 'Isi catatan berhasil disalin!', type: 'success' })"
+                        x-data="{ 
+                            copied: false,
+                            stripHtml(html) {
+                                let tmp = document.createElement('div');
+                                tmp.innerHTML = html;
+                                return tmp.textContent || tmp.innerText || '';
+                            }
+                        }"
+                        x-on:click="navigator.clipboard.writeText(stripHtml(@js($note->content))); copied = true; setTimeout(() => copied = false, 2000); $dispatch('toast', { message: 'Isi catatan berhasil disalin!', type: 'success' })"
                         title="Salin Isi Catatan"
-                        class="text-slate-500 hover:text-slate-300 transition-colors p-1 hover:bg-slate-800 rounded flex items-center gap-1 text-[10px] font-medium"
+                        class="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-slate-200 rounded flex items-center gap-1 text-[10px] font-medium"
                     >
                         <svg x-show="!copied" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
                         </svg>
-                        <svg x-show="copied" class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="display: none;">
+                        <svg x-show="copied" class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="display: none;">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
                         </svg>
                         <span x-show="!copied">Copy</span>
-                        <span x-show="copied" class="text-emerald-400" style="display: none;">Copied!</span>
+                        <span x-show="copied" class="text-emerald-500" style="display: none;">Copied!</span>
                     </button>
                 </div>
                 <!-- Editor Body -->
-                <pre class="!p-5 !m-0 !bg-slate-950 !border-0 text-xs font-mono overflow-auto max-h-[550px] leading-relaxed text-slate-300 !whitespace-pre-wrap" style="white-space: pre-wrap !important; word-break: break-word;"><code class="language-javascript !whitespace-pre-wrap" style="white-space: pre-wrap !important; word-break: break-word;">{{ $note->content }}</code></pre>
+                <div class="trix-content p-5 bg-white overflow-auto max-h-[550px] text-sm text-slate-700 leading-relaxed">{!! $note->content !!}</div>
             </div>
 
             <!-- Actions Footer (Hanya jika pembuat catatan login) -->

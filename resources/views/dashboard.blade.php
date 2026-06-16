@@ -33,13 +33,20 @@
     <div x-data="{
         activeNote: { id: '', title: '', content: '', slug: '', created_at: '', url: '' },
         deletingNote: { id: '', title: '' },
-        limit: 12
+        limit: 12,
+        stripHtml(html) {
+            let tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || '';
+        }
     }"
     x-init="
         $watch('activeNote.content', value => {
             $nextTick(() => {
                 if (window.Prism && value) {
-                    Prism.highlightElement(document.getElementById('modal-code-block'));
+                    document.querySelectorAll('#modal-note-content pre code').forEach((element) => {
+                        Prism.highlightElement(element);
+                    });
                 }
             });
         });
@@ -102,7 +109,7 @@
                         
                         <!-- Preview Catatan (Harmonious Monospace Preview) -->
                         <div class="mt-2.5 flex-1 min-h-0 overflow-hidden relative">
-                            <pre class="whitespace-pre-wrap font-mono text-[10px] text-slate-500 leading-relaxed select-none tracking-tight break-all">{{ Str::limit($note->content, 185) }}</pre>
+                            <pre class="whitespace-pre-wrap font-mono text-[10px] text-slate-500 leading-relaxed select-none tracking-tight break-all">{{ Str::limit(strip_tags($note->content), 185) }}</pre>
                             <div class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none"></div>
                         </div>
                     </div>
@@ -170,10 +177,11 @@
                 <x-input-error :messages="$errors->get('title')" class="mt-1" />
             </div>
 
-            <!-- Isi Catatan -->
-            <div>
+            <!-- Isi Catatan (WYSIWYG Trix Editor) -->
+            <div class="trix-editor-container">
                 <x-input-label for="modal_content" :value="__('Isi Catatan / Kode')" class="text-slate-700 text-sm font-medium mb-1.5" />
-                <textarea id="modal_content" name="content" rows="10" required class="block w-full bg-slate-50/50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-lg shadow-sm px-4 py-3 text-sm font-mono transition-all duration-200" placeholder="Tulis catatan atau tempel kode pemrograman Anda di sini..." style="resize: vertical;"></textarea>
+                <input id="modal_content" type="hidden" name="content" value="{{ old('content') }}" required>
+                <trix-editor input="modal_content" class="trix-content block w-full bg-slate-50/50 border border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-lg shadow-sm px-4 py-3 text-sm transition-all duration-200 min-h-[200px] max-h-[300px] overflow-y-auto" placeholder="Tulis catatan atau tempel kode pemrograman Anda di sini..."></trix-editor>
                 <x-input-error :messages="$errors->get('content')" class="mt-1" />
             </div>
 
@@ -224,20 +232,20 @@
             </div>
 
             <!-- Code/Note Content Box (Mac-style terminal preview) -->
-            <div class="border border-slate-800 rounded-xl overflow-hidden shadow-lg my-4 bg-slate-950 flex flex-col">
+            <div class="border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm my-4 bg-slate-50/50 flex flex-col">
                 <!-- Mac-style window control header -->
-                <div class="bg-slate-900 px-4 py-2.5 flex items-center justify-between border-b border-slate-800/80 shrink-0">
+                <div class="bg-slate-100/80 px-4 py-2.5 flex items-center justify-between border-b border-slate-200/60 shrink-0">
                     <div class="flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500/90 inline-block"></span>
-                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400/90 inline-block"></span>
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/90 inline-block"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400/80 inline-block"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
                     </div>
-                    <span class="text-[10px] font-mono text-slate-500 tracking-wider select-none uppercase">Preview Snippet</span>
+                    <span class="text-[10px] font-mono text-slate-400 tracking-wider select-none uppercase">Note Content</span>
                     <!-- Clipboard/Copy content shortcut inside the editor box -->
                     <button 
-                        x-on:click="navigator.clipboard.writeText(activeNote.content); $dispatch('toast', { message: 'Isi catatan berhasil disalin!', type: 'success' })"
+                        x-on:click="navigator.clipboard.writeText(stripHtml(activeNote.content)); $dispatch('toast', { message: 'Isi catatan berhasil disalin!', type: 'success' })"
                         title="Salin Isi Catatan"
-                        class="text-slate-500 hover:text-slate-300 transition-colors p-1 hover:bg-slate-800 rounded"
+                        class="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-slate-200 rounded"
                     >
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
@@ -245,7 +253,7 @@
                     </button>
                 </div>
                 <!-- Editor Body -->
-                <pre class="!p-5 !m-0 !bg-slate-950 !border-0 text-xs font-mono overflow-auto max-h-[380px] leading-relaxed text-slate-300 !whitespace-pre-wrap" style="white-space: pre-wrap !important; word-break: break-word;"><code id="modal-code-block" class="language-javascript !whitespace-pre-wrap" style="white-space: pre-wrap !important; word-break: break-word;" x-text="activeNote.content"></code></pre>
+                <div id="modal-note-content" class="trix-content p-5 bg-white overflow-auto max-h-[380px] text-sm text-slate-700 leading-relaxed" x-html="activeNote.content"></div>
             </div>
 
             <div class="flex justify-end pt-3 border-t border-slate-100">

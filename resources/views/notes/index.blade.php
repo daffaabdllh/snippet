@@ -28,10 +28,11 @@
             <x-input-error :messages="$errors->get('title')" class="mt-1" />
         </div>
 
-        <!-- Isi Catatan -->
-        <div>
+        <!-- Isi Catatan (WYSIWYG Trix Editor) -->
+        <div class="trix-editor-container">
             <x-input-label for="content" :value="__('Isi Catatan / Kode')" class="text-slate-700 text-sm font-medium mb-1.5" />
-            <textarea id="content" name="content" rows="12" required class="block w-full bg-slate-50/50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-lg shadow-sm px-4 py-3 text-sm font-mono transition-all duration-200" placeholder="Tulis catatan atau tempel kode pemrograman Anda di sini..." style="resize: vertical;"></textarea>
+            <input id="content" type="hidden" name="content" value="{{ old('content') }}" required>
+            <trix-editor input="content" class="trix-content block w-full bg-slate-50/50 border border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-lg shadow-sm px-4 py-3 text-sm transition-all duration-200 min-h-[250px] max-h-[400px] overflow-y-auto" placeholder="Tulis catatan atau tempel kode pemrograman Anda di sini..."></trix-editor>
             <x-input-error :messages="$errors->get('content')" class="mt-1" />
         </div>
 
